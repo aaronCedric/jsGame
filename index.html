@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Game</title>
+  </head>
+  <body>
+    <!-- Main game -->
+    <section class="main--game">
+      <div class="game--container enemy--container">
+        <div class="enemy--pic">
+          <img
+            class="enemy--spritesheet pixelart face-down"
+            src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/21542/DemoRpgCharacter.png"
+            alt="enemy"
+          />
+        </div>
+        <h2 class="enemy--stats">Lv 250 Lucilius</h2>
+        <p class="enemy--hp">500</p>
+        <div class="hp--enemyBarContainer">
+          <div class="hp--enemyBar"></div>
+          <div class="diamond-container"></div>
+        </div>
+      </div>
+      <div class="game--container player--container">
+        <div class="player--pic"></div>
+        <h2 class="player--stats">Player HP</h2>
+        <p class="player--hp">1000</p>
+        <div class="hp--playerBarContainer">
+          <div class="hp--playerBar"></div>
+        </div>
+      </div>
+      <div class="turn--count">
+        <h1>Turn Count: 1</h1>
+      </div>
+      <div class="btn--container player--menu">
+        <div class="skills--container">
+          <button class="btn btn--skill1">Execute</button>
+          <button class="btn btn--skill2">Dispel</button>
+          <button class="btn btn--skill3">Clarity</button>
+          <button class="btn btn--skill4">Gravity</button>
+        </div>
+        <div class="attack--container">
+          <button class="btn btn--attack">Attack</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logs -->
+    <section class="battle--log">
+      <div class="container--log">
+        <p>Battle Log</p>
+        <div class="attack--logContainer">
+          <p class="attack--log"></p>
+        </div>
+      </div>
+    </section>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
