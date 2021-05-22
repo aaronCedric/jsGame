@@ -64,15 +64,9 @@ const player = {
   },
   execute() {},
   dispel() {},
-  rage(buffSkill) {
-    let buffValue = this.attack * buffSkill;
+  rage() {
+    let buffValue = this.attack * buffSkills.attackUp.effVal;
     return buffValue;
-  },
-  fireBolt() {
-    currentDmg = this.attack + Math.round(Math.random() * 80);
-  },
-  swipe() {
-    currentDmg = this.attack + 25 * (Math.trunc(Math.random() * 4) + 1);
   },
 };
 
@@ -84,7 +78,9 @@ const enemy = {
   buffs: [],
   debuffs: [],
   normalAttack() {
-    return (currentEnemyDmg = Math.round(Math.random() * this.attack));
+    return (currentEnemyDmg = Math.trunc(
+      Math.random() * (50 - this.attack) + this.attack
+    ));
   },
   paradiseLost: {
     name: 'Paradise Lost',
@@ -118,12 +114,13 @@ const buffSkills = {
     name: 'Rage',
     desc: 'Increase attack by 25%',
     effVal: 0.25,
-    turns: 3,
+    turnDur: 3,
   },
   evangelistBlade: {
     name: 'Evangelist Blade',
     desc: 'Increase attack by 35% indefinitely (Can be dispelled)',
     effVal: 0.35,
+    turnDur: 99,
   },
 };
 
@@ -132,13 +129,13 @@ const debuffSkills = {
     name: 'Defense Break',
     desc: 'Reduce attack by 25%',
     effVal: 0.25,
-    turns: 3,
+    turnDur: 3,
   },
   poison: {
     name: 'Poison',
     desc: 'Reduce hp overtime',
     effVal: 3,
-    turns: 5,
+    turnDur: 5,
   },
 };
 
@@ -181,7 +178,7 @@ const attackFormula = function (playerMove) {
 
 const enemyAttack = function () {
   updatePlayerHp(enemy.normalAttack());
-  attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} \n`;
+  attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} damage! \n`;
 };
 
 // Checking and updating
@@ -210,9 +207,6 @@ const checkEnemyTrigger = function () {
     updatePlayerHp(enemy.theEnd());
     attackLog.innerText += `${enemy.name} used The End, Game Over! \n`;
     return true;
-  } else {
-    updatePlayerHp(enemy.normalAttack());
-    attackLog.innerText += `${enemy.name} attacked, dealing ${currentEnemyDmg} damage! \n`;
   }
 };
 
@@ -247,24 +241,16 @@ const updatePlayerHp = function (enemyDmg) {
 };
 
 // Buttons with events
-btnSkl1.addEventListener('click', function () {
-  updateTurnCount();
-  attackFormula(player.fireBolt);
-});
+btnSkl1.addEventListener('click', function () {});
 
-btnSkl2.addEventListener('click', function () {
-  updateTurnCount();
-  attackFormula(player.swipe);
-});
+btnSkl2.addEventListener('click', function () {});
 
 btnSkl3.addEventListener('click', function () {});
 
-btnSkl4.addEventListener('click', function () {
-  const values = Object.values(buffSkills);
-  const [attackUp] = values;
-  player.buffs(attackUp);
-});
+// Rage skill
+btnSkl4.addEventListener('click', function () {});
 
+// Normal attack
 btnAttack.addEventListener('click', function () {
   attackFormula(player.normalAtk);
   updateStatus();
@@ -278,7 +264,7 @@ battleStartTrigger();
 // Make a cooldown for skills
 // Press button push buffs into an array of buffs
 // Check current turn
-// If
+// Check update status if current turn === buffsTurn
 
 // Add trigger Hp [sligh done]
 // Fix skills
