@@ -17,6 +17,7 @@ let enemyHpWidth = 100;
 // Triggers
 let phospTrig = true;
 let axionTrig = true;
+let plTrig = true;
 
 // hp bar for enemy and player
 const enemyHP = document.querySelector('.enemy--hp');
@@ -39,11 +40,13 @@ const player = {
   maxHP: 1000,
   curHp: 1000,
   attack: 20,
+  buffs: [],
+  debuffs: [],
   inventory: {
     twilCoat: {
       name: 'Twil Coat',
       desc: 'Mitigate 75% damage',
-      effVal: 75,
+      effVal: 0.75,
     },
     bandage: {
       name: 'Bandage',
@@ -53,19 +56,22 @@ const player = {
     motDraft: {
       name: 'Motivating Draft',
       desc: 'Increase attack',
-      effval: 10,
+      effval: 0.1,
     },
   },
-  normalAtk: function () {
+  normalAtk() {
     currentDmg = this.attack + Math.round(Math.random() * 50);
   },
-  execute: function () {},
-  dispel: function () {},
-  gravity: function () {},
-  fireBolt: function () {
+  execute() {},
+  dispel() {},
+  rage(buffSkill) {
+    let buffValue = this.attack * buffSkill;
+    return buffValue;
+  },
+  fireBolt() {
     currentDmg = this.attack + Math.round(Math.random() * 80);
   },
-  swipe: function () {
+  swipe() {
     currentDmg = this.attack + 25 * (Math.trunc(Math.random() * 4) + 1);
   },
 };
@@ -74,89 +80,77 @@ const enemy = {
   name: 'Lucilius',
   maxHp: 500,
   curHp: 500,
-  attack: function () {
-    return (currentEnemyDmg = Math.round(Math.random() * 20));
+  attack: 20,
+  buffs: [],
+  debuffs: [],
+  normalAttack() {
+    return (currentEnemyDmg = Math.round(Math.random() * this.attack));
   },
-  paradiseLost: function () {
-    return (currentEnemyDmg = (10000 / player.maxHP) * 50);
+  paradiseLost: {
+    name: 'Paradise Lost',
+    paradise() {
+      return (currentEnemyDmg = (10000 / player.maxHP) * enemy.attack);
+    },
   },
-  phosporus: function () {
-    return (currentEnemyDmg = (5000 / player.maxHP) * 20);
+  phosporus: {
+    name: 'Phosporus',
+    phosp() {
+      return (currentEnemyDmg = Math.trunc(
+        Math.random() * (50 - enemy.attack) + enemy.attack
+      ));
+    },
   },
-  axionApocalypse: function () {
-    return (currentEnemyDmg = (7000 / player.maxHP) * 30);
+  axionApocalypse: {
+    name: 'Axion Apocalypse',
+    axion() {
+      return (currentEnemyDmg = Math.trunc(
+        (Math.random() * (70 - enemy.attack) + enemy.attack) * 3
+      ));
+    },
   },
-  orbitalDarkness: function () {},
-  iblis: function () {},
-  theEnd: function () {
+  theEnd() {
     return (currentEnemyDmg = 999999);
   },
 };
 
-const updatePlayerHp = function (enemyDmg) {
-  player.curHp -= enemyDmg;
-  playerHpWidth = (player.curHp * 100) / player.maxHP;
-  if (player.curHp <= 0) playerHpWidth = 0;
-  playerHpBar.style.width = `${playerHpWidth}%`;
-  playerHP.textContent = player.curHp;
+const buffSkills = {
+  attackUp: {
+    name: 'Rage',
+    desc: 'Increase attack by 25%',
+    effVal: 0.25,
+    turns: 3,
+  },
+  evangelistBlade: {
+    name: 'Evangelist Blade',
+    desc: 'Increase attack by 35% indefinitely (Can be dispelled)',
+    effVal: 0.35,
+  },
 };
 
-const updateEnemyHp = function () {
-  // width = (enemy.hp*100)/(enemy.maxHP)
-  // Damage to current hp
-  enemy.curHp -= currentDmg;
-  // Get width with this formula
-  enemyHpWidth = (enemy.curHp * 100) / enemy.maxHp;
-  // Update UI with the new width
-  if (enemy.curHp <= 0) enemyHpWidth = 0;
-  enemyHpBar.style.width = `${enemyHpWidth}%`;
-  // Update HP text
-  enemyHP.textContent = enemy.curHp;
+const debuffSkills = {
+  attackDown: {
+    name: 'Defense Break',
+    desc: 'Reduce attack by 25%',
+    effVal: 0.25,
+    turns: 3,
+  },
+  poison: {
+    name: 'Poison',
+    desc: 'Reduce hp overtime',
+    effVal: 3,
+    turns: 5,
+  },
 };
 
+// Battle start trigger function
 const battleStartTrigger = function () {
-  updatePlayerHp(enemy.paradiseLost());
-  attackLog.innerText = `${
-    enemy.name
-  } used Paradise Lost, dealing ${enemy.paradiseLost()} damage! \n`;
+  updatePlayerHp(enemy.paradiseLost.paradise());
+  attackLog.innerText = `${enemy.name} used ${
+    enemy.paradiseLost.name
+  }, dealing ${enemy.paradiseLost.paradise()} damage! \n`;
 };
 
-const checkEnemyTrigger = function () {
-  if (enemyHpWidth <= 95 && enemyHpWidth >= 86 && phospTrig === true) {
-    updatePlayerHp(enemy.phosporus());
-    attackLog.innerText += `${
-      enemy.name
-    } used Phosporus, dealing ${enemy.phosporus()} damage! \n`;
-    phospTrig = false;
-    return true;
-  }
-  if (enemyHpWidth <= 85 && enemyHpWidth >= 75 && axionTrig === true) {
-    updatePlayerHp(enemy.axionApocalypse());
-    attackLog.innerText += `${
-      enemy.name
-    } used Axion Apocalypse, dealing ${enemy.axionApocalypse()} damage! \n`;
-    axionTrig = false;
-    return true;
-  }
-
-  if (turnCounter === 40) {
-    updatePlayerHp(enemy.theEnd());
-    attackLog.innerText += `${enemy.name} used The End, Game Over! \n`;
-    return true;
-  }
-};
-
-const enemyAttack = function () {
-  updatePlayerHp(enemy.attack());
-  attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} \n`;
-};
-
-const updateTurnCount = function () {
-  playing ? (turnCounter += 1) : pass;
-  checkEnemyTrigger() || enemyAttack();
-  turnCount.textContent = `Turn Count: ${turnCounter}`;
-};
-
+// Attacking player and enemy
 const attackFormula = function (playerMove) {
   if (playing) {
     if (playerMove === player.normalAtk) {
@@ -185,8 +179,74 @@ const attackFormula = function (playerMove) {
   }
 };
 
-battleStartTrigger();
+const enemyAttack = function () {
+  updatePlayerHp(enemy.normalAttack());
+  attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} \n`;
+};
 
+// Checking and updating
+const checkEnemyTrigger = function () {
+  // Casts Phosporus
+  if (enemyHpWidth <= 95 && enemyHpWidth >= 86 && phospTrig === true) {
+    updatePlayerHp(enemy.phosporus.phosp());
+    attackLog.innerText += `${enemy.name} used ${enemy.phosporus.name}, dealing ${currentEnemyDmg} damage! \n`;
+    phospTrig = false;
+    return true;
+  }
+  // Casts Axion Apocalypse
+  if (enemyHpWidth <= 85 && enemyHpWidth >= 75 && axionTrig === true) {
+    updatePlayerHp(enemy.axionApocalypse.axion());
+    attackLog.innerText += `${enemy.name} used ${enemy.axionApocalypse.name} dealing ${currentEnemyDmg} damage! \n`;
+    axionTrig = false;
+    return true;
+  }
+  // Casts paradise lost
+  if (enemyHpWidth <= 10 && enemyHpWidth && plTrig === true) {
+    updatePlayerHp(enemy.theEnd());
+    attackLog.innerText += `${enemy.name} used ${enemy.paradiseLost.name}, dealing ${currentEnemyDmg} damage!`;
+  }
+  // Casts the end
+  if (turnCounter === 40) {
+    updatePlayerHp(enemy.theEnd());
+    attackLog.innerText += `${enemy.name} used The End, Game Over! \n`;
+    return true;
+  } else {
+    updatePlayerHp(enemy.normalAttack());
+    attackLog.innerText += `${enemy.name} attacked, dealing ${currentEnemyDmg} damage! \n`;
+  }
+};
+
+const updateStatus = function () {
+  // Reduce duration of buffs and debuffs
+
+  // Increase turn count
+  playing ? (turnCounter += 1) : pass;
+  checkEnemyTrigger() || enemyAttack();
+  turnCount.textContent = `Turn Count: ${turnCounter}`;
+};
+
+const updateEnemyHp = function () {
+  // width = (enemy.hp*100)/(enemy.maxHP)
+  // Damage to current hp
+  enemy.curHp -= currentDmg;
+  // Get width with this formula
+  enemyHpWidth = (enemy.curHp * 100) / enemy.maxHp;
+  // Update UI with the new width
+  if (enemy.curHp <= 0) enemyHpWidth = 0;
+  enemyHpBar.style.width = `${enemyHpWidth}%`;
+  // Update HP text
+  enemyHP.textContent = enemy.curHp;
+};
+
+const updatePlayerHp = function (enemyDmg) {
+  player.curHp -= enemyDmg;
+  playerHpWidth = (player.curHp * 100) / player.maxHP;
+  if (player.curHp <= 0) playerHpWidth = 0;
+  playerHpBar.style.width = `${playerHpWidth}%`;
+  playerHP.textContent = player.curHp;
+};
+
+// Buttons with events
 btnSkl1.addEventListener('click', function () {
   updateTurnCount();
   attackFormula(player.fireBolt);
@@ -199,17 +259,33 @@ btnSkl2.addEventListener('click', function () {
 
 btnSkl3.addEventListener('click', function () {});
 
+btnSkl4.addEventListener('click', function () {
+  const values = Object.values(buffSkills);
+  const [attackUp] = values;
+  player.buffs(attackUp);
+});
+
 btnAttack.addEventListener('click', function () {
   attackFormula(player.normalAtk);
-  updateTurnCount();
+  updateStatus();
 });
+
+// Battle start trigger enemey attack
+battleStartTrigger();
 
 // To do //
 // Add charge diamond for enemy
 // Make a cooldown for skills
+// Press button push buffs into an array of buffs
+// Check current turn
+// If
+
 // Add trigger Hp [sligh done]
 // Fix skills
 // Add more skills for enemy [slight done]
 // Auto scroll log
 // Make new sprite
 // Modal for execute skill
+// Reove buffs after base on turns
+
+// duration while flag is true there is buff? if not remove that value?
