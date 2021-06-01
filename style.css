@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap'); */
 
 :root {
   --pixel-size: 6;
@@ -26,6 +26,7 @@ body {
   grid-template-columns: 2fr 1fr;
   justify-items: center;
   align-items: center;
+  z-index: 1;
 }
 
 button {
@@ -74,6 +75,7 @@ button {
   grid-gap: 2rem;
   justify-items: center;
   align-items: center;
+  z-index: 3;
 }
 
 .skills--container {
@@ -134,6 +136,53 @@ button {
 
 .hidden {
   display: hidden;
+}
+
+.execute--container {
+  position: absolute;
+  height: inherit;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(53, 53, 53, 0.7);
+  /* backdrop-filter: blur(3px); */
+  opacity: 0;
+  transition: 0.2s ease-in;
+}
+
+.execute--skillContainer {
+  background-color: wheat;
+  border: 2px solid #fff;
+  border-radius: 0.3rem;
+  padding: 2rem;
+  height: 20rem;
+  width: 40rem;
+}
+
+.btn--closeModal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  height: 2rem;
+  width: 2rem;
+  position: relative;
+  left: 101%;
+}
+
+.modal--buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 20px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.modal--btn:hover {
+  background-color: crimson;
+  transition: 0.2s ease-in;
 }
 
 @keyframes moveSpriteSheet {

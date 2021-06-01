@@ -19,11 +19,21 @@ let phospTrig = true;
 let axionTrig = true;
 let plTrig = true;
 
+// Buff flag
+let rageBuff = false;
+
 // hp bar for enemy and player
 const enemyHP = document.querySelector('.enemy--hp');
 const playerHP = document.querySelector('.player--hp');
 const enemyHpBar = document.querySelector('.hp--enemyBar');
 const playerHpBar = document.querySelector('.hp--playerBar');
+
+// Execute skill containers and buttons
+const exeContainer = document.getElementById('execute--container');
+const closeModal = document.querySelector('.btn--closeModal');
+const twilBtn = document.querySelector('.btn--executeItem1');
+const bandageBtn = document.querySelector('.btn--executeItem2');
+const motBtn = document.querySelector('.btn--executeItem3');
 
 // btn variables
 const btnAttack = document.querySelector('.btn--attack');
@@ -41,7 +51,7 @@ const player = {
   curHp: 1000,
   attack: 20,
   buffs: [],
-  debuffs: [],
+  debuffs: ['Poison', 'Petrify', 'Def down'],
   inventory: {
     twilCoat: {
       name: 'Twil Coat',
@@ -64,9 +74,35 @@ const player = {
   },
   execute() {},
   dispel() {},
-  rage() {
-    let buffValue = this.attack * buffSkills.attackUp.effVal;
-    return buffValue;
+};
+
+const buffSkills = {
+  attackUp: {
+    name: 'Rage',
+    desc: 'Increase attack by 25%',
+    effVal: 0.25,
+    turnDur: 3,
+  },
+  evangelistBlade: {
+    name: 'Evangelist Blade',
+    desc: 'Increase attack by 35% indefinitely (Can be dispelled)',
+    effVal: 0.35,
+    turnDur: 99,
+  },
+};
+
+const debuffSkills = {
+  attackDown: {
+    name: 'Defense Break',
+    desc: 'Reduce attack by 25%',
+    effVal: 0.25,
+    turnDur: 3,
+  },
+  poison: {
+    name: 'Poison',
+    desc: 'Reduce hp overtime',
+    effVal: 3,
+    turnDur: 5,
   },
 };
 
@@ -109,36 +145,6 @@ const enemy = {
   },
 };
 
-const buffSkills = {
-  attackUp: {
-    name: 'Rage',
-    desc: 'Increase attack by 25%',
-    effVal: 0.25,
-    turnDur: 3,
-  },
-  evangelistBlade: {
-    name: 'Evangelist Blade',
-    desc: 'Increase attack by 35% indefinitely (Can be dispelled)',
-    effVal: 0.35,
-    turnDur: 99,
-  },
-};
-
-const debuffSkills = {
-  attackDown: {
-    name: 'Defense Break',
-    desc: 'Reduce attack by 25%',
-    effVal: 0.25,
-    turnDur: 3,
-  },
-  poison: {
-    name: 'Poison',
-    desc: 'Reduce hp overtime',
-    effVal: 3,
-    turnDur: 5,
-  },
-};
-
 // Battle start trigger function
 const battleStartTrigger = function () {
   updatePlayerHp(enemy.paradiseLost.paradise());
@@ -154,14 +160,6 @@ const attackFormula = function (playerMove) {
       player.normalAtk();
       updateEnemyHp();
       attackLog.innerText += `Use attack! ${currentDmg} damage! \n`;
-    } else if (playerMove === player.fireBolt) {
-      player.fireBolt();
-      updateEnemyHp();
-      attackLog.innerText += `Use fire bolt! ${currentDmg} damage! \n`;
-    } else if (playerMove === player.swipe) {
-      player.swipe();
-      updateEnemyHp();
-      attackLog.innerText += `Use swipe! ${currentDmg} damage! \n`;
     }
     if (enemy.curHp <= 0) {
       playing = false;
@@ -176,47 +174,50 @@ const attackFormula = function (playerMove) {
   }
 };
 
-const enemyAttack = function () {
-  updatePlayerHp(enemy.normalAttack());
-  attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} damage! \n`;
-};
-
 // Checking and updating
 const checkEnemyTrigger = function () {
   // Casts Phosporus
-  if (enemyHpWidth <= 95 && enemyHpWidth >= 86 && phospTrig === true) {
-    updatePlayerHp(enemy.phosporus.phosp());
-    attackLog.innerText += `${enemy.name} used ${enemy.phosporus.name}, dealing ${currentEnemyDmg} damage! \n`;
-    phospTrig = false;
-    return true;
-  }
-  // Casts Axion Apocalypse
-  if (enemyHpWidth <= 85 && enemyHpWidth >= 75 && axionTrig === true) {
-    updatePlayerHp(enemy.axionApocalypse.axion());
-    attackLog.innerText += `${enemy.name} used ${enemy.axionApocalypse.name} dealing ${currentEnemyDmg} damage! \n`;
-    axionTrig = false;
-    return true;
-  }
-  // Casts paradise lost
-  if (enemyHpWidth <= 10 && enemyHpWidth && plTrig === true) {
-    updatePlayerHp(enemy.theEnd());
-    attackLog.innerText += `${enemy.name} used ${enemy.paradiseLost.name}, dealing ${currentEnemyDmg} damage!`;
-  }
-  // Casts the end
-  if (turnCounter === 40) {
-    updatePlayerHp(enemy.theEnd());
-    attackLog.innerText += `${enemy.name} used The End, Game Over! \n`;
-    return true;
+  if (playing) {
+    if (enemyHpWidth <= 95 && enemyHpWidth >= 86 && phospTrig === true) {
+      updatePlayerHp(enemy.phosporus.phosp());
+      attackLog.innerText += `${enemy.name} used ${enemy.phosporus.name}, dealing ${currentEnemyDmg} damage! \n`;
+      phospTrig = false;
+      return true;
+    }
+    // Casts Axion Apocalypse
+    if (enemyHpWidth <= 85 && enemyHpWidth >= 75 && axionTrig === true) {
+      updatePlayerHp(enemy.axionApocalypse.axion());
+      attackLog.innerText += `${enemy.name} used ${enemy.axionApocalypse.name} dealing ${currentEnemyDmg} damage! \n`;
+      axionTrig = false;
+      return true;
+    }
+    // Casts paradise lost
+    if (enemyHpWidth <= 10 && enemyHpWidth && plTrig === true) {
+      updatePlayerHp(enemy.theEnd());
+      attackLog.innerText += `${enemy.name} used ${enemy.paradiseLost.name}, dealing ${currentEnemyDmg} damage!`;
+    }
+    // Casts the end
+    if (turnCounter === 40) {
+      updatePlayerHp(enemy.theEnd());
+      attackLog.innerText += `${enemy.name} used The End, Game Over! \n`;
+      return true;
+    } else {
+    }
+    updatePlayerHp(enemy.normalAttack());
+    attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} damage! \n`;
   }
 };
 
-const updateStatus = function () {
-  // Reduce duration of buffs and debuffs
+const checkBuffTime = function () {};
 
+const updateStatus = function () {
   // Increase turn count
   playing ? (turnCounter += 1) : pass;
-  checkEnemyTrigger() || enemyAttack();
   turnCount.textContent = `Turn Count: ${turnCounter}`;
+  // Reduce or add duration of buffs and debuffs
+  checkBuffTime();
+  // Check enemy trigger
+  checkEnemyTrigger();
 };
 
 const updateEnemyHp = function () {
@@ -232,8 +233,8 @@ const updateEnemyHp = function () {
   enemyHP.textContent = enemy.curHp;
 };
 
-const updatePlayerHp = function (enemyDmg) {
-  player.curHp -= enemyDmg;
+const updatePlayerHp = function (value) {
+  player.curHp -= value;
   playerHpWidth = (player.curHp * 100) / player.maxHP;
   if (player.curHp <= 0) playerHpWidth = 0;
   playerHpBar.style.width = `${playerHpWidth}%`;
@@ -241,19 +242,53 @@ const updatePlayerHp = function (enemyDmg) {
 };
 
 // Buttons with events
-btnSkl1.addEventListener('click', function () {});
+// Execute
+btnSkl1.addEventListener('click', function () {
+  exeContainer.style.opacity = '1';
+});
 
 btnSkl2.addEventListener('click', function () {});
 
-btnSkl3.addEventListener('click', function () {});
+// Clarity
+btnSkl3.addEventListener('click', function () {
+  const debuffRemove = player.debuffs.shift();
+  attackLog.innerText += `Use clarity and cured ${
+    debuffRemove || 'nothing'
+  } \n`;
+});
 
 // Rage skill
-btnSkl4.addEventListener('click', function () {});
+btnSkl4.addEventListener('click', function () {
+  console.log(player.rage.checkBuffs());
+});
 
 // Normal attack
 btnAttack.addEventListener('click', function () {
   attackFormula(player.normalAtk);
   updateStatus();
+});
+
+// Execute Window close and open
+closeModal.addEventListener('click', function () {
+  exeContainer.style.opacity = '0';
+});
+
+// Modal skills
+bandageBtn.addEventListener('click', function () {
+  if (player.curHp > 0 && player.curHp < player.maxHP) {
+    // Heals the player
+    player.curHp += player.inventory.bandage.effVal;
+    // If heal exceeds maximum hp, current hp will be set to maximum hp
+    if (player.curHp > player.maxHP) player.curHp = player.maxHP;
+    // Convert to percentage
+    playerHpWidth = (player.curHp * 100) / player.maxHP;
+    // Update hp bar UI
+    playerHpBar.style.width = `${playerHpWidth}%`;
+    // Update hp value UI
+    playerHP.textContent = player.curHp;
+    // Update battle log
+    attackLog.innerText += `Use bandage! Heals for ${player.inventory.bandage.effVal} HP \n`;
+  }
 });
 
 // Battle start trigger enemey attack
@@ -263,15 +298,15 @@ battleStartTrigger();
 // Add charge diamond for enemy
 // Make a cooldown for skills
 // Press button push buffs into an array of buffs
-// Check current turn
 // Check update status if current turn === buffsTurn
-
-// Add trigger Hp [sligh done]
 // Fix skills
-// Add more skills for enemy [slight done]
 // Auto scroll log
 // Make new sprite
-// Modal for execute skill
-// Reove buffs after base on turns
-
 // duration while flag is true there is buff? if not remove that value?
+
+// Remove buffs after base on turns [slight done]
+// Check current turn [done]
+// Add trigger Hp [slight done]
+// Add more skills for enemy [slight done]
+// Modal for execute skill [done]
+// Bandage skill needs number of uses [slight done]
