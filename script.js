@@ -14,14 +14,6 @@ let playing = true;
 let playerHpWidth = 100;
 let enemyHpWidth = 100;
 
-// Triggers
-let phospTrig = true;
-let axionTrig = true;
-let plTrig = true;
-
-// Buff flag
-let rageBuff = false;
-
 // hp bar for enemy and player
 const enemyHP = document.querySelector('.enemy--hp');
 const playerHP = document.querySelector('.player--hp');
@@ -31,6 +23,7 @@ const playerHpBar = document.querySelector('.hp--playerBar');
 // Execute skill containers and buttons
 const exeContainer = document.getElementById('execute--container');
 const closeModal = document.querySelector('.btn--closeModal');
+const useModal = document.querySelector('.btn--useItem');
 const twilBtn = document.querySelector('.btn--executeItem1');
 const bandageBtn = document.querySelector('.btn--executeItem2');
 const motBtn = document.querySelector('.btn--executeItem3');
@@ -52,15 +45,27 @@ const player = {
   attack: 20,
   buffs: [],
   debuffs: ['Poison', 'Petrify', 'Def down'],
-  inventory: {
+  execute: {
+    name: 'Execute',
+    desc: 'Choose an item to help you aid in battle',
+    cd: 1,
+    cdTime: 1,
+    skillFlag: false,
+    currentItem,
     twilCoat: {
       name: 'Twil Coat',
       desc: 'Mitigate 75% damage',
+      skillFlag: false,
+      numUse: 6,
+      numRem: 6,
       effVal: 0.75,
     },
     bandage: {
       name: 'Bandage',
       desc: 'Heals moderate amount of HP',
+      skillFlag: false,
+      numUse: 10,
+      numRem: 10,
       effVal: 200,
     },
     motDraft: {
@@ -69,10 +74,16 @@ const player = {
       effval: 0.1,
     },
   },
-  normalAtk() {
-    currentDmg = this.attack + Math.round(Math.random() * 50);
+  clarity: {
+    name: 'Clarity',
+    desc: 'Removes 1 debuff',
+    skillFlag: false,
+    cd: 5,
+    cdTime: 5,
   },
-  execute() {},
+  normalAtk() {
+    return (currentDmg = this.attack + Math.round(Math.random() * 10));
+  },
   dispel() {},
 };
 
@@ -120,23 +131,26 @@ const enemy = {
   },
   paradiseLost: {
     name: 'Paradise Lost',
+    skillFlag: false,
     paradise() {
       return (currentEnemyDmg = (10000 / player.maxHP) * enemy.attack);
     },
   },
   phosporus: {
     name: 'Phosporus',
+    skillFlag: false,
     phosp() {
       return (currentEnemyDmg = Math.trunc(
-        Math.random() * (50 - enemy.attack) + enemy.attack
+        Math.random() * (600 - enemy.attack) + enemy.attack
       ));
     },
   },
   axionApocalypse: {
     name: 'Axion Apocalypse',
+    skillFlag: false,
     axion() {
       return (currentEnemyDmg = Math.trunc(
-        (Math.random() * (70 - enemy.attack) + enemy.attack) * 3
+        (Math.random() * (200 - enemy.attack) + enemy.attack) * 3
       ));
     },
   },
@@ -153,71 +167,45 @@ const battleStartTrigger = function () {
   }, dealing ${enemy.paradiseLost.paradise()} damage! \n`;
 };
 
-// Attacking player and enemy
-const attackFormula = function (playerMove) {
-  if (playing) {
-    if (playerMove === player.normalAtk) {
-      player.normalAtk();
-      updateEnemyHp();
-      attackLog.innerText += `Use attack! ${currentDmg} damage! \n`;
-    }
-    if (enemy.curHp <= 0) {
-      playing = false;
-      attackLog.innerText += `Player wins!`;
-      enemyHP.textContent = 0;
-    }
-    if (player.curHp <= 0) {
-      playing = false;
-      attackLog.innerText += `You lose!`;
-      playerHP.textContent = 0;
-    }
-  }
-};
-
-// Checking and updating
+// Checking and updating enemy triggers
 const checkEnemyTrigger = function () {
-  // Casts Phosporus
   if (playing) {
-    if (enemyHpWidth <= 95 && enemyHpWidth >= 86 && phospTrig === true) {
+    // Enemy battle triggers
+    if (
+      enemyHpWidth <= 95 &&
+      enemyHpWidth >= 86 &&
+      enemy.phosporus.skillFlag === false
+    ) {
+      // Casts Phosporus
       updatePlayerHp(enemy.phosporus.phosp());
       attackLog.innerText += `${enemy.name} used ${enemy.phosporus.name}, dealing ${currentEnemyDmg} damage! \n`;
-      phospTrig = false;
-      return true;
-    }
-    // Casts Axion Apocalypse
-    if (enemyHpWidth <= 85 && enemyHpWidth >= 75 && axionTrig === true) {
+      enemy.phosporus.skillFlag = true;
+    } else if (
+      enemyHpWidth <= 85 &&
+      enemyHpWidth >= 75 &&
+      enemy.axionApocalypse.skillFlag === false
+    ) {
+      // Casts Axion Apocalypse
       updatePlayerHp(enemy.axionApocalypse.axion());
       attackLog.innerText += `${enemy.name} used ${enemy.axionApocalypse.name} dealing ${currentEnemyDmg} damage! \n`;
-      axionTrig = false;
-      return true;
-    }
-    // Casts paradise lost
-    if (enemyHpWidth <= 10 && enemyHpWidth && plTrig === true) {
+      enemy.axionApocalypse.skillFlag = true;
+    } else if (enemyHpWidth <= 10 && enemy.paradiseLost.skillFlag === false) {
+      // Casts paradise lost
       updatePlayerHp(enemy.theEnd());
-      attackLog.innerText += `${enemy.name} used ${enemy.paradiseLost.name}, dealing ${currentEnemyDmg} damage!`;
-    }
-    // Casts the end
-    if (turnCounter === 40) {
+      attackLog.innerText += `${enemy.name} used ${
+        enemy.paradiseLost.name
+      }, dealing ${enemy.theEnd()} damage! \n`;
+      enemy.paradiseLost.skillFlag = true;
+    } else if (turnCounter === 40) {
+      // Casts the end
       updatePlayerHp(enemy.theEnd());
       attackLog.innerText += `${enemy.name} used The End, Game Over! \n`;
-      return true;
     } else {
+      // Enemy normal attack
+      updatePlayerHp(enemy.normalAttack());
+      attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} damage! \n`;
     }
-    updatePlayerHp(enemy.normalAttack());
-    attackLog.innerText += `${enemy.name} attack, dealing ${currentEnemyDmg} damage! \n`;
   }
-};
-
-const checkBuffTime = function () {};
-
-const updateStatus = function () {
-  // Increase turn count
-  playing ? (turnCounter += 1) : pass;
-  turnCount.textContent = `Turn Count: ${turnCounter}`;
-  // Reduce or add duration of buffs and debuffs
-  checkBuffTime();
-  // Check enemy trigger
-  checkEnemyTrigger();
 };
 
 const updateEnemyHp = function () {
@@ -234,27 +222,100 @@ const updateEnemyHp = function () {
 };
 
 const updatePlayerHp = function (value) {
+  // Enemy attacks every turn
   player.curHp -= value;
+  // Formula to calculate width for CSS width percentage
   playerHpWidth = (player.curHp * 100) / player.maxHP;
+  // Set hp to 0 if current hp is less than 0
   if (player.curHp <= 0) playerHpWidth = 0;
+  // Update HP bar
   playerHpBar.style.width = `${playerHpWidth}%`;
   playerHP.textContent = player.curHp;
+};
+
+const updateBattleStatus = function () {
+  if (playing) {
+    // Check skill cooldowns
+    updateSkillCooldowns();
+    // Check enemy triggers
+    checkEnemyTrigger();
+    // Update enemy hp
+    updateEnemyHp();
+    // Event check when player wins
+    if (enemy.curHp <= 0) {
+      playing = false;
+      attackLog.innerText += `Player wins!`;
+      enemyHP.textContent = 0;
+    }
+    // Event check when player loses
+    if (player.curHp <= 0) {
+      // Set to false so you can't click
+      playing = false;
+      // Update text content
+      attackLog.innerText += `You lose! \n`;
+      playerHP.textContent = 0;
+    }
+    // Increase turn count
+    turnCounter += 1;
+    turnCount.textContent = `Turn Count: ${turnCounter}`;
+  }
+};
+
+const updateSkillCooldowns = function () {
+  // Execution Cooldown
+  if (player.execute.skillFlag) {
+    // If on cooldown reduce time per attack button click cause this is also base on turns
+    player.execute.cdTime--;
+  }
+  // If cdtime reached 0. Set flag to true again so it can be used again, then reset cdtime to original cd.
+  if (player.execute.cdTime === 0) {
+    skillFlag = false;
+    player.execute.cdTime = player.execute.cd;
+  }
+  // Bandage num of remaining use
+  // If flag is true then if this function is called number of uses will decrease
+  if (player.execute.bandage.skillFlag) {
+    player.execute.bandage.numRem--;
+    // Set flag to false again so it can be used
+    player.execute.bandage.skillFlag = false;
+  }
+
+  // Clarity Cooldown
+  if (player.clarity.skillFlag) {
+    player.clarity.cdTime--;
+  }
+  if (player.clarity.cdTime === 0) {
+    player.clarity.skillFlag = false;
+    player.clarity.cdTime = player.clarity.cd;
+  }
 };
 
 // Buttons with events
 // Execute
 btnSkl1.addEventListener('click', function () {
-  exeContainer.style.opacity = '1';
+  exeContainer.style.opacity = 1;
+});
+// Use button in execute
+useModal.addEventListener('click', function () {
+  // Turn on CD when this button is click
+  if (!player.execute.skillFlag) {
+    player.execute.skillFlag = true;
+  }
+  // Hide modal
+  exeContainer.style.opacity = 0;
 });
 
 btnSkl2.addEventListener('click', function () {});
 
 // Clarity
 btnSkl3.addEventListener('click', function () {
-  const debuffRemove = player.debuffs.shift();
-  attackLog.innerText += `Use clarity and cured ${
-    debuffRemove || 'nothing'
-  } \n`;
+  if (!player.clarity.skillFlag) {
+    const debuffRemove = player.debuffs.shift();
+    attackLog.innerText += `Use clarity and cured ${
+      debuffRemove || 'nothing'
+    } \n`;
+    player.clarity.skillFlag = true;
+  }
 });
 
 // Rage skill
@@ -262,33 +323,45 @@ btnSkl4.addEventListener('click', function () {
   console.log(player.rage.checkBuffs());
 });
 
-// Normal attack
+// Modal skills
+bandageBtn.addEventListener('click', function () {
+  if (!player.execute.bandage.skillFlag && player.execute.bandage.numRem > 0) {
+    if (player.curHp > 0 && player.curHp < player.maxHP) {
+      // Heals the player
+      player.curHp += player.execute.bandage.effVal;
+      // If heal exceeds maximum hp, current hp will be set to maximum hp
+      if (player.curHp > player.maxHP) player.curHp = player.maxHP;
+      // Convert to percentage
+      playerHpWidth = (player.curHp * 100) / player.maxHP;
+      // Update hp bar UI
+      playerHpBar.style.width = `${playerHpWidth}%`;
+      // Update hp value UI
+      playerHP.textContent = player.curHp;
+      // Update battle log
+      attackLog.innerText += `Use bandage! Heals for ${player.execute.bandage.effVal} HP \n`;
+      // Only 1 item per execute skill, this will turn on cooldown
+      player.execute.bandage.skillFlag = true;
+    }
+  }
+});
+
+// Normal attack also progress turns and enemy will attack
+// This will update battle status such as enemy, player hp, and player skill and item cooldowns
 btnAttack.addEventListener('click', function () {
-  attackFormula(player.normalAtk);
-  updateStatus();
+  // Use normal attack
+  if (playing) {
+    // Players always use normal attack when  this button is pressed
+    enemy.curHp -= player.normalAtk();
+    attackLog.innerText += `Use attack! ${currentDmg} damage! \n`;
+  }
+  // Update battle status
+  updateBattleStatus();
 });
 
 // Execute Window close and open
 closeModal.addEventListener('click', function () {
-  exeContainer.style.opacity = '0';
-});
-
-// Modal skills
-bandageBtn.addEventListener('click', function () {
-  if (player.curHp > 0 && player.curHp < player.maxHP) {
-    // Heals the player
-    player.curHp += player.inventory.bandage.effVal;
-    // If heal exceeds maximum hp, current hp will be set to maximum hp
-    if (player.curHp > player.maxHP) player.curHp = player.maxHP;
-    // Convert to percentage
-    playerHpWidth = (player.curHp * 100) / player.maxHP;
-    // Update hp bar UI
-    playerHpBar.style.width = `${playerHpWidth}%`;
-    // Update hp value UI
-    playerHP.textContent = player.curHp;
-    // Update battle log
-    attackLog.innerText += `Use bandage! Heals for ${player.inventory.bandage.effVal} HP \n`;
-  }
+  // Show modal inventory
+  exeContainer.style.opacity = 0;
 });
 
 // Battle start trigger enemey attack
@@ -310,3 +383,5 @@ battleStartTrigger();
 // Add more skills for enemy [slight done]
 // Modal for execute skill [done]
 // Bandage skill needs number of uses [slight done]
+// Clarity coodown [done]
+// to do bandage number of uses [done]
