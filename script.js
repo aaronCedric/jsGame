@@ -78,19 +78,22 @@ const player = {
     cd: 5,
     cdTime: 5,
   },
-  normalAtk() {
-    return (currentDmg = this.attack + Math.round(Math.random() * 10));
+  rage: {
+    name: 'Rage',
+    desc: 'Grants 25% attack up for 3 turns',
+    skillFlag: false,
+    cd: 7,
+    cdTime: 7,
+    origDur: 3,
+    duration: 3,
+    effVal: 0.25,
   },
-  dispel() {},
+  normalAtk() {
+    return (currentDmg = Math.trunc(this.attack + Math.random() * 10));
+  },
 };
 
 const buffSkills = {
-  attackUp: {
-    name: 'Rage',
-    desc: 'Increase attack by 25%',
-    effVal: 0.25,
-    turnDur: 3,
-  },
   evangelistBlade: {
     name: 'Evangelist Blade',
     desc: 'Increase attack by 35% indefinitely (Can be dispelled)',
@@ -202,6 +205,30 @@ const updateSkillCooldowns = function () {
   if (player.clarity.cdTime === 0) {
     player.clarity.skillFlag = false;
     player.clarity.cdTime = player.clarity.cd;
+  }
+
+  // Rage Cooldown
+  if (player.rage.skillFlag) {
+    player.rage.cdTime--;
+  }
+  if (player.rage.cdTime === 0) {
+    player.rage.skillFlag = false;
+    player.rage.cdTime = player.rage.cd;
+  }
+  // If duration = 0 buff will end
+  if (player.rage.duration === 0) {
+    // Remove buff on the array
+    player.buffs.shift();
+    // Reset attack and duration to original
+    player.attack = 20;
+    player.rage.duration = player.rage.origDur;
+  }
+  // Find buffs in the array
+  if (player.buffs.some(cur => cur.name === 'Rage')) {
+    // If found reduce buff duration
+    player.rage.duration--;
+    // If found add attack
+    player.attack = player.attack * (1 + player.rage.effVal);
   }
 };
 
@@ -361,11 +388,12 @@ closeModal.addEventListener('click', () =>
   exeContainer.classList.add('hidden')
 );
 
+// Dispel
 btnSkl2.addEventListener('click', function () {});
 
 // Clarity
 btnSkl3.addEventListener('click', function () {
-  if (!player.clarity.skillFlag) {
+  if (playing && !player.clarity.skillFlag) {
     // Store debuff that will be remove so it can be log
     const debuffRemove = player.debuffs.shift();
     // Short circuit for output
@@ -378,7 +406,12 @@ btnSkl3.addEventListener('click', function () {
 });
 
 // Rage skill
-btnSkl4.addEventListener('click', function () {});
+btnSkl4.addEventListener('click', function () {
+  if (playing && !player.rage.skillFlag) {
+    player.buffs.push(player.rage);
+    player.rage.skillFlag = true;
+  }
+});
 
 // Modal skills
 // Bandage
@@ -410,15 +443,10 @@ battleStartTrigger();
 
 // To do //
 // Add charge diamond for enemy
-// Make a cooldown for skills
-// Press button push buffs into an array of buffs
-// Check update status if current turn === buffsTurn
-// Fix skills
 // Auto scroll log
 // Make new sprite
-// duration while flag is true there is buff? if not remove that value?
 
-// Remove buffs after base on turns
+// Remove buffs after base on turns [done]
 // Check current turn [done]
 // Add trigger Hp [done]
 // Add more skills for enemy [done]
@@ -426,3 +454,4 @@ battleStartTrigger();
 // Bandage skill needs number of uses [done]
 // Clarity cooldown [done]
 // to do bandage number of uses [done]
+// Rage skill added [done]
