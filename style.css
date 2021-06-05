@@ -26,7 +26,6 @@ body {
   grid-template-columns: 2fr 1fr;
   justify-items: center;
   align-items: center;
-  z-index: 1;
 }
 
 button {
@@ -44,6 +43,7 @@ button {
   background-color: wheat;
   color: #333;
   transition: 0.2s ease-in;
+  cursor: pointer;
 }
 
 /* Battle log */
@@ -138,17 +138,16 @@ button {
   display: none;
 }
 
+.currentItem {
+  background-color: crimson;
+}
+
 .execute--container {
   position: absolute;
   height: inherit;
   width: 100%;
   background-color: rgba(53, 53, 53, 0.7);
-  /* backdrop-filter: blur(3px); */
-  opacity: 0;
-  transition: 0.2s ease-in;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  z-index: 10;
 }
 
 .execute--skillContainer {
@@ -162,6 +161,10 @@ button {
   grid-template-rows: 2fr;
   justify-content: center;
   align-items: center;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .modal--buttons {

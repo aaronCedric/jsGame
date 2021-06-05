@@ -1,18 +1,15 @@
 'user strict';
 
-// Damage tracker for player and enemy
+// Damage tracker for player. enemy, and item holding
 let currentDmg = 0;
 let currentEnemyDmg = 0;
+let currentItem = {};
 
 // Turn count for trigger end
 let turnCounter = 1;
 
 // Still playing?
 let playing = true;
-
-// HP bars
-let playerHpWidth = 100;
-let enemyHpWidth = 100;
 
 // hp bar for enemy and player
 const enemyHP = document.querySelector('.enemy--hp');
@@ -21,7 +18,7 @@ const enemyHpBar = document.querySelector('.hp--enemyBar');
 const playerHpBar = document.querySelector('.hp--playerBar');
 
 // Execute skill containers and buttons
-const exeContainer = document.getElementById('execute--container');
+const exeContainer = document.querySelector('.execute--container');
 const closeModal = document.querySelector('.btn--closeModal');
 const useModal = document.querySelector('.btn--useItem');
 const twilBtn = document.querySelector('.btn--executeItem1');
@@ -42,6 +39,7 @@ const turnCount = document.querySelector('.turn--count');
 const player = {
   maxHP: 1000,
   curHp: 1000,
+  playerHpWidth: 100,
   attack: 20,
   buffs: [],
   debuffs: ['Poison', 'Petrify', 'Def down'],
@@ -51,7 +49,6 @@ const player = {
     cd: 1,
     cdTime: 1,
     skillFlag: false,
-    currentItem,
     twilCoat: {
       name: 'Twil Coat',
       desc: 'Mitigate 75% damage',
@@ -121,6 +118,7 @@ const enemy = {
   name: 'Lucilius',
   maxHp: 500,
   curHp: 500,
+  enemyHpWidth: 100,
   attack: 20,
   buffs: [],
   debuffs: [],
@@ -167,13 +165,53 @@ const battleStartTrigger = function () {
   }, dealing ${enemy.paradiseLost.paradise()} damage! \n`;
 };
 
+const updateSkillCooldowns = function () {
+  // Execution Cooldown
+  if (player.execute.skillFlag) {
+    // If on cooldown reduce time per attack button click cause this is also base on turns
+    player.execute.cdTime--;
+  }
+  // If cdtime reached 0. Set flag to true so it can be used again, then reset cdtime to original cd.
+  if (player.execute.cdTime === 0) {
+    player.execute.cdTime = player.execute.cd;
+    player.execute.skillFlag = false;
+  }
+  // Bandage num of remaining use
+  // If flag is true then if this function is called number of uses will decrease
+  if (player.execute.bandage.skillFlag || player.execute.bandage.numRem === 0) {
+    player.execute.bandage.numRem--;
+    // Set flag to false again so it can be used
+    player.execute.bandage.skillFlag = false;
+    // Also remove class to turn off current item
+    bandageBtn.classList.remove('currentItem');
+  }
+  // Twil coat same as above
+  if (
+    player.execute.twilCoat.skillFlag ||
+    player.execute.twilCoat.numRem === 0
+  ) {
+    player.execute.twilCoat.numRem--;
+    player.execute.twilCoat.skillFlag = false;
+    twilBtn.classList.remove('currentItem');
+  }
+
+  // Clarity Cooldown
+  if (player.clarity.skillFlag) {
+    player.clarity.cdTime--;
+  }
+  if (player.clarity.cdTime === 0) {
+    player.clarity.skillFlag = false;
+    player.clarity.cdTime = player.clarity.cd;
+  }
+};
+
 // Checking and updating enemy triggers
 const checkEnemyTrigger = function () {
   if (playing) {
     // Enemy battle triggers
     if (
-      enemyHpWidth <= 95 &&
-      enemyHpWidth >= 86 &&
+      enemy.enemyHpWidth <= 95 &&
+      enemy.enemyHpWidth >= 86 &&
       enemy.phosporus.skillFlag === false
     ) {
       // Casts Phosporus
@@ -181,20 +219,22 @@ const checkEnemyTrigger = function () {
       attackLog.innerText += `${enemy.name} used ${enemy.phosporus.name}, dealing ${currentEnemyDmg} damage! \n`;
       enemy.phosporus.skillFlag = true;
     } else if (
-      enemyHpWidth <= 85 &&
-      enemyHpWidth >= 75 &&
+      enemy.enemyHpWidth <= 85 &&
+      enemy.enemyHpWidth >= 75 &&
       enemy.axionApocalypse.skillFlag === false
     ) {
       // Casts Axion Apocalypse
       updatePlayerHp(enemy.axionApocalypse.axion());
       attackLog.innerText += `${enemy.name} used ${enemy.axionApocalypse.name} dealing ${currentEnemyDmg} damage! \n`;
       enemy.axionApocalypse.skillFlag = true;
-    } else if (enemyHpWidth <= 10 && enemy.paradiseLost.skillFlag === false) {
+    } else if (
+      enemy.enemyHpWidth <= 10 &&
+      enemy.enemyHpWidth >= 5 &&
+      enemy.paradiseLost.skillFlag === false
+    ) {
       // Casts paradise lost
       updatePlayerHp(enemy.theEnd());
-      attackLog.innerText += `${enemy.name} used ${
-        enemy.paradiseLost.name
-      }, dealing ${enemy.theEnd()} damage! \n`;
+      attackLog.innerText += `${enemy.name} used ${enemy.paradiseLost.name}, dealing ${currentEnemyDmg} damage! \n`;
       enemy.paradiseLost.skillFlag = true;
     } else if (turnCounter === 40) {
       // Casts the end
@@ -208,29 +248,61 @@ const checkEnemyTrigger = function () {
   }
 };
 
-const updateEnemyHp = function () {
-  // width = (enemy.hp*100)/(enemy.maxHP)
-  // Damage to current hp
-  enemy.curHp -= currentDmg;
-  // Get width with this formula
-  enemyHpWidth = (enemy.curHp * 100) / enemy.maxHp;
-  // Update UI with the new width
-  if (enemy.curHp <= 0) enemyHpWidth = 0;
-  enemyHpBar.style.width = `${enemyHpWidth}%`;
-  // Update HP text
-  enemyHP.textContent = enemy.curHp;
+const useCurrentItem = function (item) {
+  // Item here is the current item and it's an object
+  if (playing) {
+    if (item.name === 'Bandage') {
+      // If not in cooldown and have remaining use do the heal
+      if (!item.skillFlag && item.numRem > 0) {
+        if (player.curHp > 0 && player.curHp < player.maxHP) {
+          // Heals the player
+          player.curHp += item.effVal;
+          // If heal exceeds maximum hp, current hp will be set to maximum hp
+          if (player.curHp > player.maxHP) player.curHp = player.maxHP;
+          // Convert to percentage
+          player.playerHpWidth = (player.curHp * 100) / player.maxHP;
+          // Update hp bar UI
+          playerHpBar.style.width = `${player.playerHpWidth}%`;
+          // Update hp value UI
+          playerHP.textContent = player.curHp;
+          // Update battle log
+          attackLog.innerText += `Use bandage! Heals for ${item.effVal} HP \n`;
+        }
+      }
+    }
+    if (item.name === 'Twil Coat') {
+      if (!item.skillFlag && item.numRem > 0) {
+        console.log('Def');
+      }
+    }
+    // Only 1 item per execute skill, this will turn on cooldown
+    item.skillFlag = true;
+  }
 };
 
 const updatePlayerHp = function (value) {
   // Enemy attacks every turn
   player.curHp -= value;
   // Formula to calculate width for CSS width percentage
-  playerHpWidth = (player.curHp * 100) / player.maxHP;
+  player.playerHpWidth = (player.curHp * 100) / player.maxHP;
   // Set hp to 0 if current hp is less than 0
-  if (player.curHp <= 0) playerHpWidth = 0;
+  if (player.curHp <= 0) player.playerHpWidth = 0;
   // Update HP bar
-  playerHpBar.style.width = `${playerHpWidth}%`;
+  playerHpBar.style.width = `${player.playerHpWidth}%`;
   playerHP.textContent = player.curHp;
+};
+
+const updateEnemyHp = function () {
+  // width = (enemy.hp*100)/(enemy.maxHP)
+  // Damage to current hp
+  enemy.curHp -= currentDmg;
+  // Get width with this formula
+  enemy.enemyHpWidth = (enemy.curHp * 100) / enemy.maxHp;
+  // Update UI with the new width
+  if (enemy.curHp <= 0) enemy.enemyHpWidth = 0;
+  enemyHpBar.style.width = `${enemy.enemyHpWidth}%`;
+  // Update HP text
+  enemyHP.textContent = enemy.curHp;
 };
 
 const updateBattleStatus = function () {
@@ -258,91 +330,66 @@ const updateBattleStatus = function () {
     // Increase turn count
     turnCounter += 1;
     turnCount.textContent = `Turn Count: ${turnCounter}`;
-  }
-};
-
-const updateSkillCooldowns = function () {
-  // Execution Cooldown
-  if (player.execute.skillFlag) {
-    // If on cooldown reduce time per attack button click cause this is also base on turns
-    player.execute.cdTime--;
-  }
-  // If cdtime reached 0. Set flag to true again so it can be used again, then reset cdtime to original cd.
-  if (player.execute.cdTime === 0) {
-    skillFlag = false;
-    player.execute.cdTime = player.execute.cd;
-  }
-  // Bandage num of remaining use
-  // If flag is true then if this function is called number of uses will decrease
-  if (player.execute.bandage.skillFlag) {
-    player.execute.bandage.numRem--;
-    // Set flag to false again so it can be used
-    player.execute.bandage.skillFlag = false;
-  }
-
-  // Clarity Cooldown
-  if (player.clarity.skillFlag) {
-    player.clarity.cdTime--;
-  }
-  if (player.clarity.cdTime === 0) {
-    player.clarity.skillFlag = false;
-    player.clarity.cdTime = player.clarity.cd;
+    // Reset current item
+    currentItem = {};
   }
 };
 
 // Buttons with events
 // Execute
 btnSkl1.addEventListener('click', function () {
-  exeContainer.style.opacity = 1;
+  // If game is still running and execute cooldown if off show the inventory
+  if (playing && !player.execute.skillFlag) {
+    // Show inventory
+    exeContainer.classList.remove('hidden');
+  }
 });
+
 // Use button in execute
 useModal.addEventListener('click', function () {
-  // Turn on CD when this button is click
-  if (!player.execute.skillFlag) {
-    player.execute.skillFlag = true;
-  }
+  // Use current Item
+  useCurrentItem(currentItem);
   // Hide modal
-  exeContainer.style.opacity = 0;
+  exeContainer.classList.add('hidden');
+  // Turn on CD
+  player.execute.skillFlag = true;
 });
+
+// Execute Window close and open
+closeModal.addEventListener('click', () =>
+  // Close inventory
+  exeContainer.classList.add('hidden')
+);
 
 btnSkl2.addEventListener('click', function () {});
 
 // Clarity
 btnSkl3.addEventListener('click', function () {
   if (!player.clarity.skillFlag) {
+    // Store debuff that will be remove so it can be log
     const debuffRemove = player.debuffs.shift();
+    // Short circuit for output
     attackLog.innerText += `Use clarity and cured ${
       debuffRemove || 'nothing'
     } \n`;
+    // Turn on clarity skill cooldown
     player.clarity.skillFlag = true;
   }
 });
 
 // Rage skill
-btnSkl4.addEventListener('click', function () {
-  console.log(player.rage.checkBuffs());
-});
+btnSkl4.addEventListener('click', function () {});
 
 // Modal skills
+// Bandage
 bandageBtn.addEventListener('click', function () {
-  if (!player.execute.bandage.skillFlag && player.execute.bandage.numRem > 0) {
-    if (player.curHp > 0 && player.curHp < player.maxHP) {
-      // Heals the player
-      player.curHp += player.execute.bandage.effVal;
-      // If heal exceeds maximum hp, current hp will be set to maximum hp
-      if (player.curHp > player.maxHP) player.curHp = player.maxHP;
-      // Convert to percentage
-      playerHpWidth = (player.curHp * 100) / player.maxHP;
-      // Update hp bar UI
-      playerHpBar.style.width = `${playerHpWidth}%`;
-      // Update hp value UI
-      playerHP.textContent = player.curHp;
-      // Update battle log
-      attackLog.innerText += `Use bandage! Heals for ${player.execute.bandage.effVal} HP \n`;
-      // Only 1 item per execute skill, this will turn on cooldown
-      player.execute.bandage.skillFlag = true;
-    }
-  }
+  currentItem = player.execute.bandage;
+  bandageBtn.classList.add('currentItem');
+});
+// Twil Coat
+twilBtn.addEventListener('click', function () {
+  currentItem = player.execute.twilCoat;
+  twilBtn.classList.add('currentItem');
 });
 
 // Normal attack also progress turns and enemy will attack
@@ -358,12 +405,6 @@ btnAttack.addEventListener('click', function () {
   updateBattleStatus();
 });
 
-// Execute Window close and open
-closeModal.addEventListener('click', function () {
-  // Show modal inventory
-  exeContainer.style.opacity = 0;
-});
-
 // Battle start trigger enemey attack
 battleStartTrigger();
 
@@ -377,11 +418,11 @@ battleStartTrigger();
 // Make new sprite
 // duration while flag is true there is buff? if not remove that value?
 
-// Remove buffs after base on turns [slight done]
+// Remove buffs after base on turns
 // Check current turn [done]
-// Add trigger Hp [slight done]
-// Add more skills for enemy [slight done]
+// Add trigger Hp [done]
+// Add more skills for enemy [done]
 // Modal for execute skill [done]
-// Bandage skill needs number of uses [slight done]
-// Clarity coodown [done]
+// Bandage skill needs number of uses [done]
+// Clarity cooldown [done]
 // to do bandage number of uses [done]
