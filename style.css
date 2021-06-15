@@ -155,16 +155,37 @@ button {
   border: 2px solid #fff;
   border-radius: 0.3rem;
   padding: 2rem;
-  height: 20rem;
-  width: 40rem;
+  height: 30rem;
+  width: 50rem;
   display: grid;
-  grid-template-rows: 2fr;
+  /* grid-template-rows: 2fr; */
   justify-content: center;
   align-items: center;
   position: relative;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.name--description {
+  display: none;
+}
+
+.name--description--active {
+  display: flex;
+  flex-direction: column;
+}
+
+.description--box {
+  display: flex;
+  justify-content: space-around;
+  background-color: rgba(53, 53, 53, 0.7);
+  padding: 2rem;
+}
+
+.item--image {
+  height: 130px;
+  width: 130px;
 }
 
 .modal--buttons {
@@ -184,6 +205,12 @@ button {
 .modal--options {
   display: flex;
   justify-content: space-around;
+}
+
+.remainingUse--container {
+  margin-top: 3px;
+  border: 2px solid #fff;
+  background-color: rgba(53, 53, 53, 0.7);
 }
 
 @keyframes moveSpriteSheet {

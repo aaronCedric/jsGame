@@ -19,8 +19,13 @@ const playerHpBar = document.querySelector('.hp--playerBar');
 
 // Execute skill containers and buttons
 const exeContainer = document.querySelector('.execute--container');
+const itemName = document.querySelector('.item--name');
+const itemDesc = document.querySelector('.item--description');
 const closeModal = document.querySelector('.btn--closeModal');
 const useModal = document.querySelector('.btn--useItem');
+const executeBtn = document.querySelector('.modal--buttons');
+const executeSet = document.querySelectorAll('.modal--btn');
+const nameDescription = document.querySelectorAll('.name--description');
 const twilBtn = document.querySelector('.btn--executeItem1');
 const bandageBtn = document.querySelector('.btn--executeItem2');
 const motBtn = document.querySelector('.btn--executeItem3');
@@ -51,7 +56,7 @@ const player = {
     skillFlag: false,
     twilCoat: {
       name: 'Twil Coat',
-      desc: 'Mitigate 75% damage',
+      desc: 'Mitigate 90% damage',
       skillFlag: false,
       numUse: 6,
       numRem: 6,
@@ -68,7 +73,10 @@ const player = {
     motDraft: {
       name: 'Motivating Draft',
       desc: 'Increase attack',
-      effval: 0.1,
+      skillFlag: false,
+      numUse: 20,
+      numRem: 20,
+      effval: 0.25,
     },
   },
   clarity: {
@@ -232,6 +240,19 @@ const updateSkillCooldowns = function () {
   }
 };
 
+// Update execution description UI
+const updateExecute = function (item) {
+  // Condition if item has something inside
+  if (Object.keys(item).length !== 0) {
+    // Change text content base on the item
+    itemName.textContent = item.name;
+    itemDesc.textContent = item.desc;
+  } else if (Object.keys(item).length === 0) {
+    itemName.textContent = 'Execute';
+    itemDesc.textContent = 'Use an item to aid you in battle';
+  }
+};
+
 // Checking and updating enemy triggers
 const checkEnemyTrigger = function () {
   if (playing) {
@@ -370,6 +391,7 @@ btnSkl1.addEventListener('click', function () {
     // Show inventory
     exeContainer.classList.remove('hidden');
   }
+  updateExecute(currentItem);
 });
 
 // Use button in execute
@@ -414,15 +436,32 @@ btnSkl4.addEventListener('click', function () {
 });
 
 // Modal skills
+
+executeBtn.addEventListener('click', function (e) {
+  const clicked = e.target.closest('.modal--btn');
+  if (!clicked) return;
+  executeSet.forEach(el => {
+    el.classList.remove('currentItem');
+  });
+  nameDescription.forEach(el => {
+    el.classList.remove('name--description--active');
+  });
+
+  clicked.classList.add('currentItem');
+  document
+    .querySelector(`.name--description--${clicked.dataset.num}`)
+    .classList.add('name--description--active');
+
+  // console.log(player.execute.clicked.dataset.item);
+});
+
 // Bandage
 bandageBtn.addEventListener('click', function () {
   currentItem = player.execute.bandage;
-  bandageBtn.classList.add('currentItem');
 });
 // Twil Coat
 twilBtn.addEventListener('click', function () {
   currentItem = player.execute.twilCoat;
-  twilBtn.classList.add('currentItem');
 });
 
 // Normal attack also progress turns and enemy will attack
@@ -445,6 +484,7 @@ battleStartTrigger();
 // Add charge diamond for enemy
 // Auto scroll log
 // Make new sprite
+// Make skill art
 
 // Remove buffs after base on turns [done]
 // Check current turn [done]
@@ -455,3 +495,5 @@ battleStartTrigger();
 // Clarity cooldown [done]
 // to do bandage number of uses [done]
 // Rage skill added [done]
+
+////////////////////// Fix number of use

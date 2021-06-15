@@ -55,11 +55,66 @@
     <!-- Modal execute skill -->
     <section class="execute--container hidden">
       <div class="execute--skillContainer">
-        <!-- <button class="modal--btn btn--closeModal">X</button> -->
+        <div class="description--box">
+          <img src="./images/execute--item01.png" alt="" class="item--image" />
+          <div
+            class="
+              name--description name--description--0 name--description--active
+            "
+          >
+            <h2 class="item--name">Execute</h2>
+            <p class="item--description">Use an item to aid you in battle</p>
+          </div>
+          <div class="name--description name--description--1">
+            <h2 class="item--name">Twil Coat</h2>
+            <p class="item--description">Reduce damage by 90%</p>
+          </div>
+          <div class="name--description name--description--2">
+            <h2 class="item--name">Bandage</h2>
+            <p class="item--description">Heals moderate amount of HP</p>
+          </div>
+          <div class="name--description name--description--3">
+            <h2 class="item--name">Motivation Draft</h2>
+            <p class="item--description">Increase attack by 25%</p>
+          </div>
+        </div>
         <div class="modal--buttons">
-          <button class="modal--btn btn--executeItem1">Twil Coat</button>
-          <button class="modal--btn btn--executeItem2">Bandage</button>
-          <button class="modal--btn btn--executeItem3">Motivation Draft</button>
+          <div class="modal--button--container">
+            <button
+              class="modal--btn btn--executeItem1"
+              data-num="1"
+              data-item="twilCoat"
+            >
+              Twil Coat
+            </button>
+            <div class="remainingUse--container">
+              <p class="numOfUse">6</p>
+            </div>
+          </div>
+          <div class="modal--button--container">
+            <button
+              class="modal--btn btn--executeItem2"
+              data-num="2"
+              data-item="bandage"
+            >
+              Bandage
+            </button>
+            <div class="remainingUse--container">
+              <p class="numOfUse">10</p>
+            </div>
+          </div>
+          <div class="modal--button--container">
+            <button
+              class="modal--btn btn--executeItem3"
+              data-num="3"
+              data-item="motDraft"
+            >
+              Motivation Draft
+            </button>
+            <div class="remainingUse--container">
+              <p class="numOfUse">20</p>
+            </div>
+          </div>
         </div>
         <div class="modal--options">
           <button class="modal--btn btn--closeModal">Cancel</button>
