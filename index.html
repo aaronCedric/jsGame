@@ -9,6 +9,7 @@
     />
     <link rel="stylesheet" href="./style.css" />
     <title>Game</title>
+    <script defer src="./script.js"></script>
   </head>
   <body>
     <!-- Main game -->
@@ -44,7 +45,7 @@
           <button class="btn btn--skill1">Execute</button>
           <button class="btn btn--skill2">Dispel</button>
           <button class="btn btn--skill3">Clarity</button>
-          <button class="btn btn--skill4">Rage</button>
+          <button class="btn btn--skill4" data-name="Rage">Rage</button>
         </div>
         <div class="attack--container">
           <button class="btn btn--attack">Attack</button>
@@ -83,36 +84,36 @@
             <button
               class="modal--btn btn--executeItem1"
               data-num="1"
-              data-item="twilCoat"
+              data-item="Twil Coat"
             >
               Twil Coat
             </button>
             <div class="remainingUse--container">
-              <p class="numOfUse">6</p>
+              <p class="numOfUse numOfUse--1">6</p>
             </div>
           </div>
           <div class="modal--button--container">
             <button
               class="modal--btn btn--executeItem2"
               data-num="2"
-              data-item="bandage"
+              data-item="Bandage"
             >
               Bandage
             </button>
             <div class="remainingUse--container">
-              <p class="numOfUse">10</p>
+              <p class="numOfUse numOfUse--2">5</p>
             </div>
           </div>
           <div class="modal--button--container">
             <button
               class="modal--btn btn--executeItem3"
               data-num="3"
-              data-item="motDraft"
+              data-item="Motivating Draft"
             >
               Motivation Draft
             </button>
             <div class="remainingUse--container">
-              <p class="numOfUse">20</p>
+              <p class="numOfUse numOfUse--3">20</p>
             </div>
           </div>
         </div>
@@ -132,7 +133,5 @@
         </div>
       </div>
     </section>
-
-    <script src="./script.js"></script>
   </body>
 </html>

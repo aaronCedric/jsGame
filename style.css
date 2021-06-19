@@ -2,6 +2,10 @@
 
 :root {
   --pixel-size: 6;
+  --font-dark: #333;
+  --font-light: #fff;
+  --menu-color: crimson;
+  --hover-color: wheat;
 }
 
 * {
@@ -19,8 +23,8 @@ html {
 
 body {
   font-family: 'Nunito';
-  background-color: #333;
-  color: #fff;
+  background-color: var(--font-dark);
+  color: var(--font-light);
   height: 100vh;
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -29,26 +33,26 @@ body {
 }
 
 button {
-  height: 100%;
-  width: 100%;
+  height: 100px;
+  width: 200px;
   padding: 1rem 1.5rem;
-  color: #fff;
-  background-color: #333;
-  border: 2px solid #fff;
+  color: var(--font-light);
+  background-color: var(--font-dark);
+  border: 2px solid var(--font-light);
   border-radius: 0.3rem;
   cursor: pointer;
 }
 
 .btn:hover {
-  background-color: wheat;
-  color: #333;
+  background-color: var(--hover-color);
+  color: var(--font-dark);
   transition: 0.2s ease-in;
   cursor: pointer;
 }
 
 /* Battle log */
 .battle--log {
-  border: 3px solid #fff;
+  border: 3px solid var(--font-light);
   border-radius: 0.3rem;
   height: 80%;
   width: 100%;
@@ -62,13 +66,13 @@ button {
   padding: 1.5rem;
 }
 
-.game--container {
+/* .game--container {
   margin: 0 0 6rem 0;
-}
+} */
 
 .player--menu {
   padding: 1.5rem;
-  border: 2px solid #fff;
+  border: 2px solid var(--font-light);
   border-radius: 0.3rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -89,7 +93,7 @@ button {
 .hp--enemyBarContainer {
   width: 100%;
   height: 2rem;
-  border: 2px solid #fff;
+  border: 2px solid var(--font-light);
   margin: 1rem 0;
   text-align: center;
 }
@@ -97,13 +101,13 @@ button {
 .hp--enemyBar {
   width: 100%;
   height: 100%;
-  background-color: crimson;
+  background-color: var(--menu-color);
 }
 
 .hp--playerBarContainer {
   width: 100%;
   height: 2rem;
-  border: 2px solid #fff;
+  border: 2px solid var(--font-light);
   margin: 1rem 0;
   text-align: center;
 }
@@ -111,7 +115,7 @@ button {
 .hp--playerBar {
   width: 100%;
   height: 100%;
-  background-color: crimson;
+  background-color: var(--menu-color);
 }
 
 /* Spritesheet */
@@ -139,20 +143,20 @@ button {
 }
 
 .currentItem {
-  background-color: crimson;
+  background-color: var(--menu-color);
 }
 
 .execute--container {
-  position: absolute;
-  height: inherit;
+  position: fixed;
+  height: 100%;
   width: 100%;
-  background-color: rgba(53, 53, 53, 0.7);
+  background-color: rgba(22, 22, 22, 0.9);
   z-index: 10;
 }
 
 .execute--skillContainer {
-  background-color: wheat;
-  border: 2px solid #fff;
+  background-color: rgba(53, 53, 53, 0.7);
+  border: 2px solid var(--font-light);
   border-radius: 0.3rem;
   padding: 2rem;
   height: 30rem;
@@ -179,7 +183,7 @@ button {
 .description--box {
   display: flex;
   justify-content: space-around;
-  background-color: rgba(53, 53, 53, 0.7);
+  background-color: rgba(196, 196, 196, 0.7);
   padding: 2rem;
 }
 
@@ -198,7 +202,8 @@ button {
 }
 
 .modal--btn:hover {
-  background-color: crimson;
+  background-color: var(--hover-color);
+  color: var(--font-dark);
   transition: 0.2s ease-in;
 }
 
@@ -209,8 +214,12 @@ button {
 
 .remainingUse--container {
   margin-top: 3px;
-  border: 2px solid #fff;
-  background-color: rgba(53, 53, 53, 0.7);
+  border: 2px solid var(--font-light);
+  background-color: rgba(196, 196, 196, 0.7);
+}
+
+.cdOverlay {
+  background-color: var(--menu-color);
 }
 
 @keyframes moveSpriteSheet {
