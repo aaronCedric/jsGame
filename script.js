@@ -141,11 +141,14 @@ const enemy = {
       Math.random() * (50 - this.attack) + this.attack
     ));
   },
+  paradiseEntry: () =>
+    (currentEnemyDmg = (10000 / player.maxHP) * enemy.attack),
+  theEnd: () => (currentEnemyDmg = 999999),
   paradiseLost: {
     name: 'Paradise Lost',
     skillFlag: false,
     paradise() {
-      return (currentEnemyDmg = (10000 / player.maxHP) * enemy.attack);
+      return (currentEnemyDmg = (30000 / player.maxHP) * enemy.attack);
     },
   },
   phosporus: {
@@ -168,13 +171,17 @@ const enemy = {
     name: 'Axion Apocalypse',
     skillFlag: false,
     axion() {
-      return (currentEnemyDmg = Math.trunc(
-        (Math.random() * (200 - enemy.attack) + enemy.attack) * 3
-      ));
+      if (player.buffs.some(cur => (cur.name = 'Twil Coat'))) {
+        return (currentEnemyDmg = Math.trunc(
+          ((Math.random() * (200 - enemy.attack) + enemy.attack) * 3) /
+            player.execute.twilCoat.effVal
+        ));
+      } else {
+        return (currentEnemyDmg = Math.trunc(
+          (Math.random() * (200 - enemy.attack) + enemy.attack) * 3
+        ));
+      }
     },
-  },
-  theEnd() {
-    return (currentEnemyDmg = 999999);
   },
 };
 
@@ -269,10 +276,10 @@ const checkPlayerBuffs = function () {
 
 // Cast skill on entry
 const battleStartTrigger = (function () {
-  updatePlayerHp(enemy.paradiseLost.paradise());
-  attackLog.innerText = `${enemy.name} used ${
-    enemy.paradiseLost.name
-  }, dealing ${enemy.paradiseLost.paradise()} damage! \n`;
+  updatePlayerHp(enemy.paradiseEntry());
+  attackLog.innerText = `${
+    enemy.name
+  } used Paradise Lost, dealing ${enemy.paradiseEntry()} damage! \n`;
 })();
 
 // Checking and updating enemy triggers
@@ -299,11 +306,11 @@ const checkEnemyTrigger = function () {
     enemy.axionApocalypse.skillFlag = true;
   } else if (
     enemy.enemyHpWidth <= 10 &&
-    enemy.enemyHpWidth >= 5 &&
+    enemy.enemyHpWidth >= 3 &&
     enemy.paradiseLost.skillFlag === false
   ) {
     // Casts paradise lost
-    updatePlayerHp(enemy.theEnd());
+    updatePlayerHp(enemy.paradiseLost.paradise());
     attackLog.innerText += `${enemy.name} used ${enemy.paradiseLost.name}, dealing ${currentEnemyDmg} damage! \n`;
     enemy.paradiseLost.skillFlag = true;
   } else if (turnCounter === 40) {
@@ -534,3 +541,4 @@ btnAttack.addEventListener('click', function () {
 // Fix number of use [done]
 
 ////// To do make all triggers same as phosphorus
+///// Fix remaining use 0 on item to not turn on cooldown of execute
